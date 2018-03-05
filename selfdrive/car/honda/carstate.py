@@ -168,6 +168,7 @@ class CarState(object):
 
     self.cruise_buttons = 0
     self.cruise_setting = 0
+    self.altButton1 = 0
     self.blinker_on = 0
 
     self.left_blinker_on = 0

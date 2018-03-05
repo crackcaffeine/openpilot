@@ -120,7 +120,8 @@ def create_radar_commands(v_ego, car_fingerprint, idx):
     commands.append(make_can_msg(0x301, msg_0x301, idx, 1))
 
 def create_cancel_command(idx):
-  msg_0x296 = "\x40\x00\x00\"
+  commands = []
+  msg_0x296 = "\x40\x00\x00"
   commands.append(make_can_msg(0x296, msg_0x296, idx, 1))
   msg_0x1df = "\x8a\xd0\x01\x00\x00\x00\x00"
   commands.append(make_can_msg(0x1df, msg_0x1df, idx, 1))

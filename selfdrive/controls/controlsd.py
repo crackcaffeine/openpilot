@@ -228,8 +228,9 @@ def state_control(plan, CS, CP, state, events, v_cruise_kph, v_cruise_kph_last, 
       else:
         rear_view_toggle = False
 
-    if b.type == "altButton1" and b.pressed:
-      rear_view_toggle = not rear_view_toggle
+    #if b.type == "altButton1" and b.pressed:
+
+      #rear_view_toggle = not rear_view_toggle
 
 
   # send FCW alert if triggered by planner
