@@ -121,10 +121,13 @@ def create_radar_commands(v_ego, car_fingerprint, idx):
 
 def create_cancel_command(idx):
   commands = []
+  """SCM Buttons"""
   msg_0x296 = "\x40\x00\x00"
-  commands.append(make_can_msg(0x296, msg_0x296, idx, 1))
-  msg_0x1df = "\x8a\xd0\x01\x00\x00\x00\x00"
-  commands.append(make_can_msg(0x1df, msg_0x1df, idx, 1))
-  msg_0x1ef = "\x03\xff\x00\x75\x30\x00\x00"
-  commands.append(make_can_msg(0x1ef, msg_0x1ef, idx, 1))
+  commands.append(make_can_msg(0x296, msg_0x296, idx, 0))
+  """ACC Control"""
+  #msg_0x1df = "\x8a\xd0\x01\x00\x00\x00\x00"
+  #commands.append(make_can_msg(0x1df, msg_0x1df, idx, 0))
+  """ACC_CONTROL_ON"""
+  #msg_0x1ef = "\x03\xff\x00\x75\x30\x00\x00"
+  #commands.append(make_can_msg(0x1ef, msg_0x1ef, idx, 0))
   return commands

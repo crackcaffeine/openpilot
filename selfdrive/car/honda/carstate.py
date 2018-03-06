@@ -171,6 +171,9 @@ class CarState(object):
     self.altButton1 = 0
     self.blinker_on = 0
 
+    self.stockacc_engaged = 0
+    self.stockacc_cancelrequest = 0
+
     self.left_blinker_on = 0
     self.right_blinker_on = 0
 

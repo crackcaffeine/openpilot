@@ -396,7 +396,7 @@ class CarInterface(object):
         but = self.CS.prev_cruise_setting
       if but == 1:
         be.type = 'altButton1'
-        self.CS.altButton1 = but
+        self.CS.altButton1 = True
       # TODO: more buttons?
       buttonEvents.append(be)
     ret.buttonEvents = buttonEvents

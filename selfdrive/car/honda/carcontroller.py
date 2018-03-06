@@ -141,8 +141,10 @@ class CarController(object):
     idx = frame % 4
     can_sends.extend(hondacan.create_steering_control(apply_steer, CS.CP.carFingerprint, idx))
 
-    # Send cancel when toggling altbutton.
-    if CS.altButton1:
+    # Command cancel button if engaged and we have requested cancel
+    if CS.stockacc_engaged and CS.stockacc_cancelrequest:
+      if (frame % 2) == 0:
+        idx = (frame / 2) % 4
         can_sends.extend(hondacan.create_cancel_command(idx))
 
     # Send gas and brake commands.
