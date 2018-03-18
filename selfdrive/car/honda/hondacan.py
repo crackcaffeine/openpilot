@@ -124,7 +124,7 @@ def create_radar_commands(v_ego, car_fingerprint, idx):
   if car_fingerprint == CAR.CIVIC:
     msg_0x301 = "\x02\x38\x44\x32\x4f\x00\x00"
     commands.append(make_can_msg(0x300, msg_0x300, idx + 8, 1))  # add 8 on idx.
-  elif car_fingerprint == CAR.CRV:
+  elif car_fingerprint == CAR.CRV_4G:
     msg_0x301 = "\x00\x00\x50\x02\x51\x00\x00"
     commands.append(make_can_msg(0x300, msg_0x300, idx, 1))
   elif car_fingerprint == CAR.ACURA_RDX:
@@ -142,3 +142,6 @@ def create_radar_commands(v_ego, car_fingerprint, idx):
 
   commands.append(make_can_msg(0x301, msg_0x301, idx, 1))
   return commands
+
+def create_cancel_command(idx):
+  return make_can_msg(0x296, "\x40\x00\x00", idx, 0)

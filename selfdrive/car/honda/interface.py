@@ -141,7 +141,10 @@ class CarInterface(object):
     ret.carName = "honda"
     ret.carFingerprint = candidate
 
-    ret.safetyModel = car.CarParams.SafetyModels.honda
+    if 0x1ef in fingerprint:
+      ret.safetyModel = car.CarParams.SafetyModels.hondaBosch
+    else:
+      ret.safetyModel = car.CarParams.SafetyModels.honda
 
     ret.enableSteer = True
     ret.enableBrake = True
@@ -164,21 +167,7 @@ class CarInterface(object):
     tireStiffnessRear_civic = 90000
 
     ret.steerKiBP, ret.steerKpBP = [[0.], [0.]]
-    if candidate == CAR.CIVIC:
-      stop_and_go = True
-      ret.mass = mass_civic
-      ret.wheelbase = wheelbase_civic
-      ret.centerToFront = centerToFront_civic
-      ret.steerRatio = 13.0
-      # Civic at comma has modified steering FW, so different tuning for the Neo in that car
-      is_fw_modified = os.getenv("DONGLE_ID") in ['99c94dc769b5d96e']
-      ret.steerKpV, ret.steerKiV = [[0.4], [0.12]] if is_fw_modified else [[0.8], [0.24]]
-
-      ret.longitudinalKpBP = [0., 5., 35.]
-      ret.longitudinalKpV = [3.6, 2.4, 1.5]
-      ret.longitudinalKiBP = [0., 35.]
-      ret.longitudinalKiV = [0.54, 0.36]
-    elif candidate == CAR.ACURA_ILX:
+    if candidate == CAR.ACURA_ILX:
       stop_and_go = False
       ret.mass = 3095./2.205 + std_cargo
       ret.wheelbase = 2.67
@@ -192,7 +181,46 @@ class CarInterface(object):
       ret.longitudinalKpV = [1.2, 0.8, 0.5]
       ret.longitudinalKiBP = [0., 35.]
       ret.longitudinalKiV = [0.18, 0.12]
-    elif candidate == CAR.CRV:
+    elif candidate == CAR.ACURA_RDX:
+      stop_and_go = False
+      ret.mass = 3935./2.205 + std_cargo
+      ret.wheelbase = 2.68
+      ret.centerToFront = ret.wheelbase * 0.38
+      ret.steerRatio = 15.0
+      ret.steerKpV, ret.steerKiV = [[0.8], [0.24]]
+
+      ret.longitudinalKpBP = [0., 5., 35.]
+      ret.longitudinalKpV = [1.2, 0.8, 0.5]
+      ret.longitudinalKiBP = [0., 35.]
+      ret.longitudinalKiV = [0.18, 0.12]
+    elif candidate == CAR.ACCORD:
+      stop_and_go = True
+      ret.enableCamera = True
+      ret.mass = 3298./2.205 + std_cargo
+      ret.wheelbase = 2.67
+      ret.centerToFront = ret.wheelbase * 0.39
+      ret.steerRatio = 11.82
+      ret.steerKpV, ret.steerKiV = [[0.8], [0.24]]
+
+      ret.longitudinalKpBP = [0., 5., 35.]
+      ret.longitudinalKpV = [1.2, 0.8, 0.5]
+      ret.longitudinalKiBP = [0., 35.]
+      ret.longitudinalKiV = [0.18, 0.12]
+    elif candidate == CAR.CIVIC:
+      stop_and_go = True
+      ret.mass = mass_civic
+      ret.wheelbase = wheelbase_civic
+      ret.centerToFront = centerToFront_civic
+      ret.steerRatio = 13.0
+      # Civic at comma has modified steering FW, so different tuning for the Neo in that car
+      is_fw_modified = os.getenv("DONGLE_ID") in ['99c94dc769b5d96e']
+      ret.steerKpV, ret.steerKiV = [[0.4, 0.12]] if is_fw_modified else [[0.8], [0.24]]
+
+      ret.longitudinalKpBP = [0., 5., 35.]
+      ret.longitudinalKpV = [3.6, 2.4, 1.5]
+      ret.longitudinalKiBP = [0., 35.]
+      ret.longitudinalKiV = [0.54, 0.36]
+    elif candidate == CAR.CRV_4G:
       stop_and_go = False
       ret.mass = 3572./2.205 + std_cargo
       ret.wheelbase = 2.62
@@ -204,12 +232,13 @@ class CarInterface(object):
       ret.longitudinalKpV = [1.2, 0.8, 0.5]
       ret.longitudinalKiBP = [0., 35.]
       ret.longitudinalKiV = [0.18, 0.12]
-    elif candidate == CAR.ACURA_RDX:
-      stop_and_go = False
-      ret.mass = 3935./2.205 + std_cargo
-      ret.wheelbase = 2.68
-      ret.centerToFront = ret.wheelbase * 0.38
-      ret.steerRatio = 15.0
+    elif candidate == CAR.CRV_5G:
+      stop_and_go = True
+      ret.enableCamera = True
+      ret.mass = 3358./2.205 + std_cargo
+      ret.wheelbase = 2.67
+      ret.centerToFront = ret.wheelbase * 0.41
+      ret.steerRatio = 12.30
       ret.steerKpV, ret.steerKiV = [[0.8], [0.24]]
 
       ret.longitudinalKpBP = [0., 5., 35.]

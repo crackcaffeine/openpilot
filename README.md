@@ -22,21 +22,32 @@ Supported Cars
 - Acura ILX 2016 with AcuraWatch Plus
   - Due to use of the cruise control for gas, it can only be enabled above 25 mph
 
+- Acura RDX 2018 with AcuraWatch Plus (alpha!)
+  - Can only be enabled above 25 mph
+
+- Honda Accord 2018
+  - Due to limitations in steering firmware, steering is disabled below 12 mph
+  - Uses stock Honda Sensing for longitudinal control
+
 - Honda Civic 2016-2017 with Honda Sensing
   - Due to limitations in steering firmware, steering is disabled below 12 mph
-  - Note that the hatchback model is not supported
+
+  - Honda Civic Hatchback Sport 2017-2018 with Honda Sensing
+    - Due to limitations in steering firmware, steering is disabled below 12 mph
+    - Uses stock Honda Sensing for longitudinal control
 
 - Honda CR-V Touring 2015-2016
   - Can only be enabled above 25 mph
 
+- Honda CR-V 2017-2018 with Honda Sensing
+  - Due to limitations in steering firmware, steering is disabled below 12 mph
+  - Uses stock Honda Sensing for longitudinal control
+
 - Honda Odyssey 2018 with Honda Sensing (alpha!)
   - Can only be enabled above 25 mph
 
-- Acura RDX 2018 with AcuraWatch Plus (alpha!)
-  - Can only be enabled above 25 mph
-  
 - Honda Pilot 2017 with Honda Sensing (alpha!)
-  - Can only be enabled above 27 mph 
+  - Can only be enabled above 27 mph
 
 - Toyota RAV-4 2016+ non-hybrid with TSS-P
   - By default it uses stock Toyota ACC for longitudinal control

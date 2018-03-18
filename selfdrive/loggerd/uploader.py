@@ -10,6 +10,7 @@ import requests
 import traceback
 import threading
 import subprocess
+import commands
 
 from collections import Counter
 from selfdrive.swaglog import cloudlog
@@ -70,7 +71,7 @@ def clear_locks(root):
 def is_on_wifi():
   # ConnectivityManager.getActiveNetworkInfo()
   result = subprocess.check_output(["service", "call", "connectivity", "2"]).strip().split("\n")
-  data = ''.join(''.join(w.decode("hex")[::-1] for w in l[14:49].split()) for l in result[1:]) 
+  data = ''.join(''.join(w.decode("hex")[::-1] for w in l[14:49].split()) for l in result[1:])
 
   return "\x00".join("WIFI") in data
 
@@ -278,4 +279,3 @@ def main(gctx=None):
 
 if __name__ == "__main__":
   main()
-
