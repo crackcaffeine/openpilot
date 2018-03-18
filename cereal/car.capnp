@@ -97,6 +97,11 @@ struct CarState {
   buttonEvents @11 :List(ButtonEvent);
   leftBlinker @20 :Bool;
   rightBlinker @21 :Bool;
+  genericToggle @23 :Bool;
+
+  # lock info
+  doorOpen @24 :Bool;
+  seatbeltUnlatched @25 :Bool;
 
   # which packets this state came from
   canMonoTimes @12: List(UInt64);
@@ -250,7 +255,7 @@ struct CarControl {
 
 struct CarParams {
   carName @0 :Text;
-  radarName @1 :Text;
+  radarNameDEPRECATED @1 :Text;
   carFingerprint @2 :Text;
 
   enableSteer @3 :Bool;
@@ -263,6 +268,7 @@ struct CarParams {
 
   minEnableSpeed @17 :Float32;
   safetyModel @18 :Int16;
+  safetyParam @41 :Int16;
 
   steerMaxBP @19 :List(Float32);
   steerMaxV @20 :List(Float32);
@@ -277,10 +283,11 @@ struct CarParams {
   enum SafetyModels {
     # does NOT match board setting
     noOutput @0;
-    hondaNidec @1;
+    honda @1;
     toyota @2;
     elm327 @3;
-    hondaBosch @4;
+    gm @4;
+    hondaBosch @5;
   }
 
   # things about the car in the manual
@@ -296,8 +303,12 @@ struct CarParams {
   tireStiffnessRear @14 :Float32;    # [N/rad] rear tire coeff of stiff
 
   # Kp and Ki for the lateral control
-  steerKp @15 :Float32;
-  steerKi @16 :Float32;
+  steerKpBP @42 :List(Float32);
+  steerKpV @43 :List(Float32);
+  steerKiBP @44 :List(Float32);
+  steerKiV @45 :List(Float32);
+  steerKpDEPRECATED @15 :Float32;
+  steerKiDEPRECATED @16 :Float32;
   steerKf @25 :Float32;
 
   # Kp and Ki for the longitudinal control

@@ -1,18 +1,14 @@
 from collections import namedtuple
 import os
-import common.numpy_fast as np
-from common.numpy_fast import clip, interp
-from common.realtime import sec_since_boot
-
-from selfdrive.config import CruiseButtons
 from selfdrive.boardd.boardd import can_list_to_can_capnp
 from selfdrive.controls.lib.drive_helpers import rate_limit
-
+from common.numpy_fast import clip
 from . import hondacan
 from .values import AH
+from common.fingerprints import HONDA as CAR
 
 
-def actuator_hystereses(brake, braking, brake_steady, v_ego, civic):
+def actuator_hystereses(brake, braking, brake_steady, v_ego, car_fingerprint):
   # hyst params... TODO: move these to VehicleParams
   brake_hyst_on = 0.02     # to activate brakes exceed this value
   brake_hyst_off = 0.005                     # to deactivate brakes below this value
@@ -32,7 +28,7 @@ def actuator_hystereses(brake, braking, brake_steady, v_ego, civic):
     brake_steady = brake + brake_hyst_gap
   brake = brake_steady
 
-  if not civic and brake > 0.0:
+  if (car_fingerprint in (CAR.ACURA_ILX, CAR.CRV_4G)) and brake > 0.0:
     brake += 0.15
 
   return brake, braking, brake_steady
@@ -71,14 +67,14 @@ class CarController(object):
              pcm_speed, pcm_override, pcm_cancel_cmd, pcm_accel, \
              hud_v_cruise, hud_show_lanes, hud_show_car, hud_alert, \
              snd_beep, snd_chime):
+
     """ Controls thread """
 
-    # TODO: Make the accord work.
-    if CS.accord or not self.enable_camera:
+    if not self.enable_camera:
       return
 
     # *** apply brake hysteresis ***
-    brake, self.braking, self.brake_steady = actuator_hystereses(actuators.brake, self.braking, self.brake_steady, CS.v_ego, CS.civic)
+    brake, self.braking, self.brake_steady = actuator_hystereses(actuators.brake, self.braking, self.brake_steady, CS.v_ego, CS.CP.carFingerprint)
 
     # *** no output if not enabled ***
     if not enabled and CS.pcm_acc_status:
@@ -104,6 +100,10 @@ class CarController(object):
     else:
       hud_car = 0xc0
 
+    # For lateral control-only, send chimes as a beep since we don't send 0x30c
+    if CS.CP.carFingerprint in (CAR.CRV_5G, CAR.CIVIC_HATCH, CAR.ACCORD):
+      snd_beep = snd_beep if snd_beep is not 0 else snd_chime
+
     #print chime, alert_id, hud_alert
     fcw_display, steer_required, acc_alert = process_hud_alert(hud_alert)
 
@@ -118,18 +118,15 @@ class CarController(object):
     # **** process the car messages ****
 
     # *** compute control surfaces ***
-    tt = sec_since_boot()
     GAS_MAX = 1004
     BRAKE_MAX = 1024/4
-    if CS.civic or CS.crv5g:
-      is_fw_modified = os.getenv("DONGLE_ID") in ['b0f5a01cf604185c']
-      STEER_MAX = 0x1FFF if is_fw_modified else 0x1000
-    elif CS.civichatch:
-      STEER_MAX = 0x1000
-    elif CS.crv:
-      STEER_MAX = 0x300  # CR-V only uses 12-bits and requires a lower value
-    else:
+    if CS.CP.carFingerprint in (CAR.ACURA_ILX):
       STEER_MAX = 0xF00
+    elif CS.CP.carFingerprint in (CAR.CRV_4G, CAR.ACURA_RDX):
+      STEER_MAX = 0x3e8  # CR-V only uses 12-bits and requires a lower value (max value from energee)
+    else:
+      is_fw_modified = os.getenv("DONGLE_ID") in ['99c94dc769b5d96e']
+      STEER_MAX = 0x1FFF if is_fw_modified else 0x1000
     GAS_OFFSET = 328
 
     # steer torque is converted back to CAN reference (positive when steering right)
@@ -145,20 +142,17 @@ class CarController(object):
     can_sends = []
 
     # Send steering command.
-    if CS.accord:
-      idx = frame % 2
-      can_sends.append(hondacan.create_accord_steering_control(apply_steer, idx))
-    else:
-      idx = frame % 4
-      can_sends.extend(hondacan.create_steering_control(apply_steer, CS.crv, CS.crv5g, CS.civichatch, idx))
+    idx = frame % 4
+    can_sends.extend(hondacan.create_steering_control(apply_steer, CS.CP.carFingerprint, idx))
 
     # Send dashboard UI commands.
     if (frame % 10) == 0:
       idx = (frame/10) % 4
-      can_sends.extend(hondacan.create_ui_commands(pcm_speed, hud, CS.civic, CS.accord, CS.crv, CS.crv5g, CS.civichatch, idx))
+      can_sends.extend(hondacan.create_ui_commands(pcm_speed, hud, CS.CP.carFingerprint, idx))
 
-    # Send gas and brake commands.
-    if not CS.steer_only:
+	# Only send for cars with longitudinal control.
+    if CS.CP.carFingerprint not in (CAR.CRV_5G, CAR.CIVIC_HATCH, CAR.ACCORD):
+      # Send gas and brake commands.
       if (frame % 2) == 0:
         idx = (frame / 2) % 4
         can_sends.append(
@@ -171,13 +165,18 @@ class CarController(object):
           can_sends.append(hondacan.create_gas_command(gas_amount, idx))
 
       # radar at 20Hz, but these msgs need to be sent at 50Hz on ilx (seems like an Acura bug)
-      if CS.civic or CS.accord or CS.crv:
-        radar_send_step = 5
-      else:
+      if CS.CP.carFingerprint == CAR.ACURA_ILX:
         radar_send_step = 2
+      else:
+        radar_send_step = 5
 
       if (frame % radar_send_step) == 0:
         idx = (frame/radar_send_step) % 4
-        can_sends.extend(hondacan.create_radar_commands(CS.v_ego, CS.civic, CS.accord, CS.crv, idx))
+        can_sends.extend(hondacan.create_radar_commands(CS.v_ego, CS.CP.carFingerprint, idx))
+
+    # If using stock ACC, send a cancel command to kill gas when OP disengages
+    else:
+      if pcm_cancel_cmd:
+        can_sends.append(hondacan.create_cancel_command(idx))
 
     sendcan.send(can_list_to_can_capnp(can_sends, msgtype='sendcan').to_bytes())
