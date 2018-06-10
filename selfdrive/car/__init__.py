@@ -5,7 +5,7 @@ from common.fingerprints import eliminate_incompatible_cars, all_known_cars
 
 from selfdrive.swaglog import cloudlog
 import selfdrive.messaging as messaging
-from common.fingerprints import HONDA, TOYOTA, GM
+from common.fingerprints import HONDA, TOYOTA, GM, HYUNDAI
 
 def load_interfaces(x):
   ret = {}
@@ -23,6 +23,7 @@ interfaces = load_interfaces({
   'honda': [HONDA.CIVIC, HONDA.ACURA_ILX, HONDA.CRV, HONDA.ODYSSEY, HONDA.ACURA_RDX, HONDA.PILOT, HONDA.RIDGELINE],
   'toyota': [TOYOTA.PRIUS, TOYOTA.RAV4, TOYOTA.RAV4H, TOYOTA.COROLLA, TOYOTA.LEXUS_RXH],
   'gm': [GM.VOLT],
+  'hyundai' : [HYUNDAI.ELANTRA, HYUNDAI.GENESIS],
   'simulator2': ['simulator2'],
   'mock': ['mock']})
 
@@ -53,6 +54,7 @@ def fingerprint(logcan, timeout):
     if len(candidate_cars) == 1 and st is not None:
       # TODO: better way to decide to wait more if Toyota
       time_fingerprint = 1.0 if ("TOYOTA" in candidate_cars[0] or "LEXUS" in candidate_cars[0]) else 0.1
+      if ("HYUNDAI" in candidate_cars[0]) time_fingerprint = 3.0
       if (ts-st) > time_fingerprint:
         break
 
