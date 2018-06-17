@@ -8,11 +8,12 @@ from selfdrive.config import Conversions as CV
 from selfdrive.controls.lib.drive_helpers import create_event, EventTypes as ET, get_events
 from selfdrive.controls.lib.vehicle_model import VehicleModel
 from selfdrive.car.honda.carstate import CarState, get_can_parser
-from selfdrive.car.honda.values import CruiseButtons, CM, BP, AH, CAR
+from selfdrive.car.honda.values import CruiseButtons, CM, BP, AH
 from selfdrive.controls.lib.planner import A_ACC_MAX
+from common.fingerprints import HONDA as CAR
 
 try:
-  from selfdrive.car.honda.carcontroller import CarController
+  from .carcontroller import CarController
 except ImportError:
   CarController = None
 
@@ -146,7 +147,6 @@ class CarInterface(object):
     if 0x1ef in fingerprint:
       ret.safetyModel = car.CarParams.SafetyModels.hondaBosch
       ret.enableCamera = True
-      ret.radarOffCan = True
     else:
       ret.safetyModel = car.CarParams.SafetyModels.honda
       ret.enableCamera = not any(x for x in CAMERA_MSGS if x in fingerprint)
@@ -183,10 +183,10 @@ class CarInterface(object):
       ret.longitudinalKiV = [0.54, 0.36]
     elif candidate == CAR.CIVIC_HATCH:
       stop_and_go = True
-      ret.mass = 2916. * CV.LB_TO_KG + std_cargo
+      ret.mass = 2961. * CV.LB_TO_KG + std_cargo
       ret.wheelbase = wheelbase_civic
       ret.centerToFront = centerToFront_civic
-      ret.steerRatio = 10.93
+      ret.steerRatio = 13.0
       ret.steerKpV, ret.steerKiV = [[0.8], [0.24]]
 
       ret.longitudinalKpBP = [0., 5., 35.]
@@ -195,9 +195,9 @@ class CarInterface(object):
       ret.longitudinalKiV = [0.18, 0.12]
     elif candidate == CAR.ACCORD:
       stop_and_go = True
-      ret.safetyParam = 1 # Accord and CRV 5G use an alternate user brake msg
-      ret.mass = 3279. * CV.LB_TO_KG + std_cargo
-      ret.wheelbase = 2.83
+      ret.safetyParam = 1 # Informs fw that this car uses an alternate user brake msg
+      ret.mass = 3298. * CV.LB_TO_KG + std_cargo
+      ret.wheelbase = 2.67
       ret.centerToFront = ret.wheelbase * 0.39
       ret.steerRatio = 11.82
       ret.steerKpV, ret.steerKiV = [[0.8], [0.24]]
@@ -234,13 +234,13 @@ class CarInterface(object):
       ret.longitudinalKiV = [0.18, 0.12]
     elif candidate == CAR.CRV_5G:
       stop_and_go = True
-      ret.safetyParam = 1 # Accord and CRV 5G use an alternate user brake msg
-      ret.mass = 3410. * CV.LB_TO_KG + std_cargo
-      ret.wheelbase = 2.66
+      ret.safetyParam = 1 # Alternate user brake msg
+      ret.mass = 3358. * CV.LB_TO_KG + std_cargo
+      ret.wheelbase = 2.67
       ret.centerToFront = ret.wheelbase * 0.41
       ret.steerRatio = 12.30
       ret.steerKpV, ret.steerKiV = [[0.8], [0.24]]
-
+ 
       ret.longitudinalKpBP = [0., 5., 35.]
       ret.longitudinalKpV = [1.2, 0.8, 0.5]
       ret.longitudinalKiBP = [0., 35.]
@@ -339,7 +339,6 @@ class CarInterface(object):
     ret.steerLimitAlert = True
     ret.startAccel = 0.5
 
-    ret.steerActuatorDelay = 0.09
     ret.steerRateCost = 0.5
 
     return ret
@@ -465,7 +464,7 @@ class CarInterface(object):
       self.can_invalid_count = 0
     if self.CS.steer_error:
       events.append(create_event('steerUnavailable', [ET.NO_ENTRY, ET.IMMEDIATE_DISABLE, ET.PERMANENT]))
-    elif self.CS.steer_warning:
+    elif self.CS.steer_not_allowed:
       events.append(create_event('steerTempUnavailable', [ET.NO_ENTRY, ET.WARNING]))
     if self.CS.brake_error:
       events.append(create_event('brakeUnavailable', [ET.NO_ENTRY, ET.IMMEDIATE_DISABLE, ET.PERMANENT]))

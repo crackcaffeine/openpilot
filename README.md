@@ -9,15 +9,6 @@ The openpilot codebase has been written to be concise and enable rapid prototypi
 
 Here are [some](https://www.youtube.com/watch?v=9OwTJFuDI7g) [videos](https://www.youtube.com/watch?v=64Wvt5pYQmE) [of](https://www.youtube.com/watch?v=6IW7Nejsr3A) [it](https://www.youtube.com/watch?v=-VN1YcC83nA) [running](https://www.youtube.com/watch?v=EQJZvVeihZk). And a really cool [tutorial](https://www.youtube.com/watch?v=PwOnsT2UW5o).
 
-Community
-------
-
-openpilot is supported by [comma.ai](https://comma.ai/)
-
-We have a [Twitter you should follow](https://twitter.com/comma_ai).
-
-Also, we have a 3500+ person [community on slack](https://slack.comma.ai).
-
 Hardware
 ------
 
@@ -28,27 +19,31 @@ Install openpilot on a neo device by entering ``https://openpilot.comma.ai`` dur
 Supported Cars
 ------
 
-### Honda + Acura ###
+- Acura ILX 2016 with AcuraWatch Plus
+  - Due to use of the cruise control for gas, it can only be enabled above 25 mph
 
 - Honda Accord 2018 with Honda Sensing (alpha!)
   - Uses stock Honda Sensing for longitudinal control
 
-- Honda Civic 2016+ with Honda Sensing
+- Honda Civic 2016-2018 with Honda Sensing
   - Due to limitations in steering firmware, steering is disabled below 12 mph
   - Note that the hatchback model is not supported
 
-- Honda Civic Hatchback 2017+ with Honda Sensing (alpha!)
-  - Due to limitations in steering firmware, steering is disabled below 12 mph
-  - Uses stock Honda Sensing for longitudinal control
-
-- Honda CR-V 2017-2018 with Honda Sensing (alpha!)
+- Honda Civic Hatchback 2017-2018 with Honda Sensing (alpha!)
   - Due to limitations in steering firmware, steering is disabled below 12 mph
   - Uses stock Honda Sensing for longitudinal control
 
 - Honda CR-V Touring 2015-2016
   - Can only be enabled above 25 mph
 
+- Honda CR-V 2017-2018 with Honda Sensing (alpha!)
+  - Due to limitations in steering firmware, steering is disabled below 12 mph
+  - Uses stock Honda Sensing for longitudinal control
+
 - Honda Odyssey 2018 with Honda Sensing (alpha!)
+  - Can only be enabled above 25 mph
+
+- Acura RDX 2018 with AcuraWatch Plus (alpha!)
   - Can only be enabled above 25 mph
 
 - Honda Pilot 2017 with Honda Sensing (alpha!)
@@ -57,45 +52,26 @@ Supported Cars
 - Honda Ridgeline 2017 with Honda Sensing (alpha!)
   - Can only be enabled above 27 mph
 
-- Acura ILX 2016 with AcuraWatch Plus
-  - Due to use of the cruise control for gas, it can only be enabled above 25 mph
-
-- Acura RDX 2018 with AcuraWatch Plus (alpha!)
-  - Can only be enabled above 25 mph
-
-### Toyota + Lexus ###
-
 - Toyota RAV-4 2016+ non-hybrid with TSS-P
   - By default it uses stock Toyota ACC for longitudinal control
   - openpilot longitudinal control available after unplugging the [Driving Support ECU](https://community.comma.ai/wiki/index.php/Toyota#Rav4_.28for_openpilot.29) and can be enabled above 20 mph
 
-- Toyota Prius 2017+
+- Toyota Prius 2017 (alpha!)
   - By default it uses stock Toyota ACC for longitudinal control
   - openpilot longitudinal control available after unplugging the [Driving Support ECU](https://community.comma.ai/wiki/index.php/Toyota#Prius_.28for_openpilot.29)
   - Lateral control needs improvements
 
-- Toyota RAV-4 2017+ hybrid
+- Toyota RAV-4 2017 hybrid (alpha!)
   - By default it uses stock Toyota ACC for longitudinal control
   - openpilot longitudinal control available after unplugging the [Driving Support ECU](https://community.comma.ai/wiki/index.php/Toyota#Rav4_.28for_openpilot.29) and can do stop and go
 
-- Toyota Corolla 2017+
+- Toyota Corolla 2017 (alpha!)
   - By default it uses stock Toyota ACC for longitudinal control
   - openpilot longitudinal control available after unplugging the [Driving Support ECU](https://community.comma.ai/wiki/index.php/Toyota#Corolla_.28for_openpilot.29) and can be enabled above 20 mph
 
-- Lexus RX 2017+ hybrid (alpha!)
+- Lexus RX 2017 hybrid (alpha!)
   - By default it uses stock Lexus ACC for longitudinal control
   - openpilot longitudinal control available after unplugging the [Driving Support ECU](https://community.comma.ai/wiki/index.php/Toyota#Lexus_RX_hybrid)
-
-### GM (Chevrolet + Cadillac) ###
-
-- Chevrolet Volt Premier 2017+
-  - Driver Confidence II package (adaptive cruise control) required
-  - Can only be enabled above 18 mph
-  - Read the [installation guide](https://www.zoneos.com/volt.htm)
-
-- Cadillac CT6
-  - Uses stock ACC for longitudinal control
-  - Requires multiple panda for proxying the ASCMs
 
 In Progress Cars
 ------
@@ -106,19 +82,12 @@ In Progress Cars
   - 'All-Speed Range Dynamic Radar Cruise Control' is required to enable stop-and-go. Only the GS, GSH, GS, F, RX, RXH, LX, NX, NXH, LC, LCH, LS, LSH have this option.
   - Even though the LX have TSS-P, it does not have Steering Assist and is not supported.
 
-Community Maintained Cars
+Community WIP Cars
 ------
 
-- [Classic Tesla Model S (pre-AP)](https://github.com/commaai/openpilot/pull/246)
+- [Chevy Volt 2016-2018 Premier with Driver Confidence II](https://github.com/commaai/openpilot/pull/104)
 
-How can I add support for my car?
-------
-
-If your car has adaptive cruise control and lane keep assist, you are in luck. Using a [panda](https://panda.comma.ai) and [cabana](https://community.comma.ai/cabana/), you can understand how to make your car drive by wire.
-
-We've written a [porting guide](https://medium.com/@comma_ai/openpilot-port-guide-for-toyota-models-e5467f4b5fe6) for Toyota that might help you after you have the basics figured out.
-
-Sadly, BMW, Audi, Volvo, and Mercedes all use [FlexRay](https://en.wikipedia.org/wiki/FlexRay) and are unlikely to be supported any time soon. We also put time into a Ford port, but the steering has a 10 second cutout limitation that makes it unusable.
+- [Classic Tesla Model S (pre-AP)](https://github.com/commaai/openpilot/pull/145)
 
 Directory structure
 ------
@@ -137,7 +106,6 @@ Directory structure
   - debug         -- Tools to help you debug and do car ports
   - logcatd       -- Android logcat as a service
   - loggerd       -- Logger and uploader of car data
-  - orbd          -- Service generating ORB features from road camera
   - proclogd      -- Logs information from proc
   - sensord       -- IMU / GPS interface code
   - test/plant    -- Car simulator running code through virtual maneuvers
@@ -159,6 +127,13 @@ There is rudimentary infrastructure to run a basic simulation and generate a rep
 The results are written to `selfdrive/test/plant/out/index.html`
 
 More extensive testing infrastructure and simulation environments are coming soon.
+
+Adding Car Support
+------
+
+comma.ai offers [bounties](http://comma.ai/bounties.html) for adding additional car support.
+
+CR-V Touring support came in through this program. Chevy Volt is close. Accord is close as well.
 
 User Data / chffr Account / Crash Reporting
 ------

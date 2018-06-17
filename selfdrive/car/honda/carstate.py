@@ -1,8 +1,10 @@
+import os
+from cereal import car
 from common.numpy_fast import interp
-from common.kalman.simple_kalman import KF1D
 from selfdrive.can.parser import CANParser
 from selfdrive.config import Conversions as CV
-from selfdrive.car.honda.values import CAR, DBC
+from common.kalman.simple_kalman import KF1D
+from common.fingerprints import HONDA as CAR
 import numpy as np
 
 
@@ -105,7 +107,7 @@ def get_can_signals(CP):
       ("SCM_BUTTONS", 25),
   ]
 
-  if CP.radarOffCan:
+  if CP.safetyModel == car.CarParams.SafetyModels.hondaBosch:
     # Civic is only bosch to use the same brake message as other hondas.
     if CP.carFingerprint != CAR.CIVIC_HATCH:
       signals += [("BRAKE_PRESSED", "BRAKE_MODULE", 0)]
@@ -123,6 +125,7 @@ def get_can_signals(CP):
     checks += [("CRUISE_PARAMS", 50)]
 
   if CP.carFingerprint == CAR.ACCORD:
+    dbc_f = 'honda_accord_s2t_2018_can_generated.dbc'
     signals += [("DRIVERS_DOOR_OPEN", "SCM_FEEDBACK", 1)]
   else:
     signals += [("DOOR_OPEN_FL", "DOORS_STATUS", 1),
@@ -131,26 +134,37 @@ def get_can_signals(CP):
                 ("DOOR_OPEN_RR", "DOORS_STATUS", 1)]
     checks += [("DOORS_STATUS", 3)]
   if CP.carFingerprint == CAR.CIVIC:
+    dbc_f = 'honda_civic_touring_2016_can_generated.dbc'
     signals += [("CAR_GAS", "GAS_PEDAL_2", 0),
                 ("MAIN_ON", "SCM_FEEDBACK", 0),
                 ("EPB_STATE", "EPB_STATUS", 0),
                 ("BRAKE_HOLD_ACTIVE", "VSA_STATUS", 0)]
   elif CP.carFingerprint == CAR.ACURA_ILX:
+    dbc_f = 'acura_ilx_2016_can_generated.dbc'
     signals += [("CAR_GAS", "GAS_PEDAL_2", 0),
                 ("MAIN_ON", "SCM_BUTTONS", 0)]
   elif CP.carFingerprint == CAR.CRV:
+    dbc_f = 'honda_crv_touring_2016_can_generated.dbc'
     signals += [("MAIN_ON", "SCM_BUTTONS", 0)]
+  elif CP.carFingerprint == CAR.CRV_5G:
+    dbc_f = 'honda_crv_ex_2017_can_generated.dbc'
   elif CP.carFingerprint == CAR.ACURA_RDX:
+    dbc_f = 'acura_rdx_2018_can_generated.dbc'
     signals += [("MAIN_ON", "SCM_BUTTONS", 0)]
+  elif CP.carFingerprint == CAR.CIVIC_HATCH:
+    dbc_f = 'honda_civic_hatchback_ex_2017_can_generated.dbc'
   elif CP.carFingerprint == CAR.ODYSSEY:
+    dbc_f = 'honda_odyssey_exl_2018_generated.dbc'
     signals += [("MAIN_ON", "SCM_FEEDBACK", 0),
                 ("EPB_STATE", "EPB_STATUS", 0),
                 ("BRAKE_HOLD_ACTIVE", "VSA_STATUS", 0)]
     checks += [("EPB_STATUS", 50)]
   elif CP.carFingerprint == CAR.PILOT:
+    dbc_f = 'honda_pilot_touring_2017_can_generated.dbc'
     signals += [("MAIN_ON", "SCM_BUTTONS", 0),
                 ("CAR_GAS", "GAS_PEDAL_2", 0)]
   elif CP.carFingerprint == CAR.RIDGELINE:
+    dbc_f = 'honda_ridgeline_black_edition_2017_can_generated.dbc'
     signals += [("MAIN_ON", "SCM_BUTTONS", 0)]
 
   # add gas interceptor reading if we are using it
@@ -158,12 +172,12 @@ def get_can_signals(CP):
     signals.append(("INTERCEPTOR_GAS", "GAS_SENSOR", 0))
     checks.append(("GAS_SENSOR", 50))
 
-  return signals, checks
+  return dbc_f, signals, checks
 
 
 def get_can_parser(CP):
-  signals, checks = get_can_signals(CP)
-  return CANParser(DBC[CP.carFingerprint]['pt'], signals, checks, 0)
+  dbc_f, signals, checks = get_can_signals(CP)
+  return CANParser(os.path.splitext(dbc_f)[0], signals, checks, 0)
 
 
 class CarState(object):
@@ -223,7 +237,6 @@ class CarState(object):
     # TODO: Use values from DBC to parse this field
     self.steer_error = cp.vl["STEER_STATUS"]['STEER_STATUS'] not in [0, 2, 3, 4, 6]
     self.steer_not_allowed = cp.vl["STEER_STATUS"]['STEER_STATUS'] != 0
-    self.steer_warning = cp.vl["STEER_STATUS"]['STEER_STATUS'] not in [0, 3]   # 3 is low speed lockout, not worth a warning
     self.brake_error = cp.vl["STANDSTILL"]['BRAKE_ERROR_1'] or cp.vl["STANDSTILL"]['BRAKE_ERROR_2']
     self.esp_disabled = cp.vl["VSA_STATUS"]['ESP_DISABLED']
 
@@ -290,8 +303,7 @@ class CarState(object):
     self.steer_torque_driver = cp.vl["STEER_STATUS"]['STEER_TORQUE_SENSOR']
 
     self.brake_switch = cp.vl["POWERTRAIN_DATA"]['BRAKE_SWITCH']
-
-    if self.CP.radarOffCan:
+    if self.CP.safetyModel == car.CarParams.SafetyModels.hondaBosch:
       self.stopped = cp.vl["ACC_HUD"]['CRUISE_SPEED'] == 252.
       self.cruise_speed_offset = calc_cruise_offset(0, self.v_ego)
       if self.CP.carFingerprint == CAR.CIVIC_HATCH:

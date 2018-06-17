@@ -2,7 +2,7 @@ import struct
 
 import common.numpy_fast as np
 from selfdrive.config import Conversions as CV
-from selfdrive.car.honda.values import CAR
+from common.fingerprints import HONDA as CAR
 
 # *** Honda specific ***
 def can_cksum(mm):
@@ -70,7 +70,7 @@ def create_steering_control(packer, apply_steer, enabled, car_fingerprint, idx):
     "STEER_TORQUE_REQUEST": enabled,
   }
   # Set bus 2 for accord and new crv.
-  bus = 2 if car_fingerprint in (CAR.CRV_5G, CAR.ACCORD, CAR.CIVIC_HATCH) else 0
+  bus = (0,2)[car_fingerprint in (CAR.CRV_5G, CAR.ACCORD, CAR.CIVIC_HATCH)]
   return packer.make_can_msg("STEERING_CONTROL", bus, values, idx)
 
 
@@ -148,9 +148,8 @@ def create_radar_commands(v_ego, car_fingerprint, idx):
   commands.append(make_can_msg(0x301, msg_0x301, idx, 1))
   return commands
 
-def spam_buttons_command(packer, button_val, idx):
-  values = {
-    'CRUISE_BUTTONS': button_val,
-    'CRUISE_SETTING': 0,
-  }
-  return packer.make_can_msg("SCM_BUTTONS", 0, values, idx)
+def create_cancel_command(idx):
+  return make_can_msg(0x296, "\x40\x00\x00", idx, 0)
+
+def create_resume_command(idx):
+  return make_can_msg(0x296, "\x80\x00\x00", idx, 0)

@@ -28,7 +28,7 @@ class RadarInterface(object):
     self.pts = {}
     self.track_id = 0
     self.radar_fault = False
-    self.radar_off_can = CP.radarOffCan
+    self.bosch_radar = CP.safetyModel == car.CarParams.SafetyModels.hondaBosch
 
     self.delay = 0.1  # Delay of radar
 
@@ -46,7 +46,7 @@ class RadarInterface(object):
 
     # in Bosch radar and we are only steering for now, so sleep 0.05s to keep
     # radard at 20Hz and return no points
-    if self.radar_off_can:
+    if self.bosch_radar:
       time.sleep(0.05)
       return ret
 
@@ -90,10 +90,7 @@ class RadarInterface(object):
 
 
 if __name__ == "__main__":
-  class CarParams:
-    radarOffCan = False
-
-  RI = RadarInterface(CarParams)
+  RI = RadarInterface()
   while 1:
     ret = RI.update()
     print(chr(27) + "[2J")
