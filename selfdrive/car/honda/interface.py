@@ -1,6 +1,9 @@
 #!/usr/bin/env python
 import os
 import numpy as np
+import selfdrive.messaging as messaging
+import time
+import zmq
 from cereal import car, log
 from common.numpy_fast import clip, interp
 from common.realtime import sec_since_boot
@@ -11,6 +14,7 @@ from selfdrive.controls.lib.vehicle_model import VehicleModel
 from selfdrive.car.honda.carstate import CarState, get_can_parser
 from selfdrive.car.honda.values import CruiseButtons, CM, BP, AH, CAR, HONDA_BOSCH
 from selfdrive.controls.lib.planner import A_ACC_MAX
+from selfdrive.services import service_list
 
 try:
   from selfdrive.car.honda.carcontroller import CarController
@@ -31,6 +35,24 @@ def compute_gb_honda(accel, speed):
     creep_brake = (creep_speed - speed) / creep_speed * creep_brake_value
   return float(accel) / 4.8 - creep_brake
 
+def check_switch_bosch():
+  # Check can 3 for steering message, this indicates that passive mode is true
+  context = zmq.Context()
+  logcan = messaging.sub_sock(context, service_list['can'].port)
+  st = None
+  giraffe_switch_high = False
+  while 1:
+    for mq in messaging.drain_sock(logcan, wait_for_one=True):
+      for can in mq.can:
+        if can.src == 2 and can.address == 0xe4:
+          giraffe_switch_high = True
+    if st is None:
+      st = sec_since_boot()
+    ts = sec_since_boot()
+    if (ts-st) > 0.1:
+      break
+    time.sleep(0.01)
+  return giraffe_switch_high
 
 def get_compute_gb_acura():
   # generate a function that takes in [desired_accel, current_speed] -> [-1.0, 1.0]
@@ -138,8 +160,13 @@ class CarInterface(object):
     ret.carFingerprint = candidate
 
     if candidate in HONDA_BOSCH:
-      ret.safetyModel = car.CarParams.SafetyModels.hondaBosch
-      ret.enableCamera = True
+      # Check third can for steering msg.
+      giraffe_switch_high = check_switch_bosch()
+      if giraffe_switch_high:
+        ret.enableCamera = False
+      else:
+        ret.safetyModel = car.CarParams.SafetyModels.hondaBosch
+        ret.enableCamera = True
       ret.radarOffCan = True
     else:
       ret.safetyModel = car.CarParams.SafetyModels.honda
