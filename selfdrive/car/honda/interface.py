@@ -163,6 +163,7 @@ class CarInterface(object):
       # Check third can for steering msg.
       giraffe_switch_high = check_switch_bosch()
       if giraffe_switch_high:
+        ret.safetyModel = car.CarParams.SafetyModels.noOutput
         ret.enableCamera = False
       else:
         ret.safetyModel = car.CarParams.SafetyModels.hondaBosch
