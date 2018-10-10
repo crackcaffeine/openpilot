@@ -68,6 +68,8 @@ def fingerprint(logcan, timeout):
     # if we only have one car choice and the time_fingerprint since we got our first
     # message has elapsed, exit. Toyota needs higher time_fingerprint, since DSU does not
     # broadcast immediately
+    print "candidate cars",
+    print len(candidate_cars)
     if len(candidate_cars) == 1 and st is not None:
       # TODO: better way to decide to wait more if Toyota
       time_fingerprint = 1.0 if ("TOYOTA" in candidate_cars[0] or "LEXUS" in candidate_cars[0]) else 0.1
