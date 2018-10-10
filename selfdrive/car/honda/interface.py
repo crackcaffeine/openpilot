@@ -204,7 +204,7 @@ class CarInterface(object):
       ret.longitudinalKiBP = [0., 35.]
       ret.longitudinalKiV = [0.18, 0.12]
 
-    elif candidate in (CAR.ACCORD, CAR.ACCORD_15, CAR.ACCORDH):
+    elif candidate in (CAR.ACCORD, CAR.ACCORD_15, CAR.ACCORDH, CAR.ACCORD_20_MANUAL):
       stop_and_go = True
       if not candidate == CAR.ACCORDH: # Hybrid uses same brake msg as hatch
         ret.safetyParam = 1 # Accord and CRV 5G use an alternate user brake msg
