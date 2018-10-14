@@ -172,11 +172,14 @@ def thermald_thread():
     msg.thermal.freeSpace = avail
     with open("/sys/class/power_supply/battery/capacity") as f:
       msg.thermal.batteryPercent = int(f.read())
-      #limit charging
-      if msg.thermal.batteryPercent > 70:
+      #begining of limit charging. read the charging enabled flag in to charging_enabled
+      with open("/sys/class/power_supply/battery/charging_enabled") as f:
+        charging_enabled = int(f.read())
+      if msg.thermal.batteryPercent > 70 and charging_enabled:
         os.system("echo 0 > /sys/class/power_supply/battery/charging_enabled")
-      elif msg.thermal.batteryPercent < 67:
+      elif msg.thermal.batteryPercent < 67 and not charging_enabled:
         os.system("echo 1 > /sys/class/power_supply/battery/charging_enabled")
+        #end limit charging
     with open("/sys/class/power_supply/battery/status") as f:
       msg.thermal.batteryStatus = f.read().strip()
     with open("/sys/class/power_supply/battery/current_now") as f:
