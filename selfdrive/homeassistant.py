@@ -13,13 +13,24 @@ import subprocess
 def main(gctx=None):
   context = zmq.Context()
   poller = zmq.Poller()
-  sock = messaging.sub_sock(context, service_list['liveLocation'].port, poller)
+  loc_sock = messaging.sub_sock(context, service_list['gpsLocation'].port, poller)
+  health_sock = messaging.sub_sock(context, service_list['health'].port, poller)
+  thermal_sock = messaging.sub_sock(context, service_list['thermal'].port, poller)
+
 
   #initialize the values
+  #gpsLocation
+  loc_source = -1
   latitude = -1
   longitude = -1
   altitude = -1
   speed = -1
+
+  #health
+  car_voltage = -1
+  #thermal
+  eon_soc = -1
+  thermal_status = -1
 
   #the password to get into your homeassistant UI
   API_PASSWORD = 'REMOVED'
@@ -41,32 +52,56 @@ def main(gctx=None):
 
     while ready:
       print "Transmitting to Home Assistant..."
-      for sock, event in poller.poll(500):
-        msg = sock.recv()
+
+      # get location data
+      for loc_sock, event in poller.poll(500):
+        msg = loc_sock.recv()
         evt = log.Event.from_bytes(msg)
 
-        latitude = evt.liveLocation.lat
-        longitude = evt.liveLocation.lon
-        altitude = evt.liveLocation.alt
-        speed = evt.liveLocation.speed
+        loc_source = evt.gpsLocation.source
+        latitude = evt.gpsLocation.latitude
+        longitude = evt.gpsLocation.longitude
+        altitude = evt.gpsLocation.altitude
+        speed = evt.gpsLocation.speed
 
-        headers = {
-        'x-ha-access': API_PASSWORD
-        }
+      # get health data
+      for health_sock, event in poller.poll(500):
+        msg = health_sock.recv()
+        evt = log.Event.from_bytes(msg)
 
-        stats = {'latitude': latitude,
-        'longitude': longitude,
-        'altitude': altitude,
-        'speed': speed,
-        }
-        data = {'state': 'connected',
-        'attributes': stats,
-        }
-        r = requests.post(API_URL, headers=headers, json=data)
-        if r.status_code == requests.codes.ok:
-          print "Received by Home Assistant"
-        else:
-          print "Problem sending. Retry"
+        car_voltage = evt.health.voltage
+
+      # get thermal data
+      for thermal_sock, event in poller.poll(500):
+        msg = thermal_sock.recv()
+        evt = log.Event.from_bytes(msg)
+
+        eon_soc = evt.thermal.batteryPercent
+        thermal_status = evt.thermal.ThermalStatus
+
+
+      headers = {
+      'x-ha-access': API_PASSWORD
+      }
+
+      stats = {'latitude': latitude,
+      'longitude': longitude,
+      'altitude': altitude,
+      'speed': speed,
+      'loc_source': loc_source,
+      'car_voltage': car_voltage,
+      'eon_soc': eon_soc,
+      'thermal_status': thermal_status
+
+      }
+      data = {'state': 'connected',
+      'attributes': stats,
+      }
+      r = requests.post(API_URL, headers=headers, json=data)
+      if r.status_code == requests.codes.ok:
+        print "Received by Home Assistant"
+      else:
+        print "Problem sending. Retry"
       sleep(60)
       ready = False
 
