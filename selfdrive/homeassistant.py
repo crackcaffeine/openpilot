@@ -9,6 +9,7 @@ from common.transformations.coordinates import geodetic2ecef
 import requests
 import os
 import subprocess
+import threading
 
 def main(gctx=None):
   context = zmq.Context()
@@ -16,7 +17,6 @@ def main(gctx=None):
   loc_sock = messaging.sub_sock(context, service_list['gpsLocation'].port, poller)
   health_sock = messaging.sub_sock(context, service_list['health'].port, poller)
   thermal_sock = messaging.sub_sock(context, service_list['thermal'].port, poller)
-
 
   #initialize the values
   #gpsLocation
@@ -39,71 +39,76 @@ def main(gctx=None):
   #where you want to ping. probably 'https://myhomeassistanturl.com'
   PING_URL = 'REMOVED'
 
+  send()
+
   while 1:
-    ready = False
 
-    while not ready:
-      ping = subprocess.call(["ping", "-W", "4", "-c", "1", PING_URL])
-      if ping:
-        #didn't get a good ping. sleep and try again
-        sleep(1)
-      else:
-        ready = True
+    # get location data
+    for loc_sock, event in poller.poll(0):
+      msg = loc_sock.recv()
+      evt = log.Event.from_bytes(msg)
 
-    while ready:
-      print "Transmitting to Home Assistant..."
+      loc_source = evt.gpsLocation.source
+      latitude = evt.gpsLocation.latitude
+      longitude = evt.gpsLocation.longitude
+      altitude = evt.gpsLocation.altitude
+      speed = evt.gpsLocation.speed
 
-      # get location data
-      for loc_sock, event in poller.poll(100):
-        msg = loc_sock.recv()
-        evt = log.Event.from_bytes(msg)
+    # get health data
+    for health_sock, event in poller.poll(0):
+      msg = health_sock.recv()
+      evt = log.Event.from_bytes(msg)
 
-        loc_source = evt.gpsLocation.source
-        latitude = evt.gpsLocation.latitude
-        longitude = evt.gpsLocation.longitude
-        altitude = evt.gpsLocation.altitude
-        speed = evt.gpsLocation.speed
+      car_voltage = evt.health.voltage
 
-      # get health data
-      for health_sock, event in poller.poll(100):
-        msg = health_sock.recv()
-        evt = log.Event.from_bytes(msg)
+    # get thermal data
+    for thermal_sock, event in poller.poll(0):
+      msg = thermal_sock.recv()
+      evt = log.Event.from_bytes(msg)
 
-        car_voltage = evt.health.voltage
+      eon_soc = evt.thermal.batteryPercent
+      thermal_status = evt.thermal.thermalStatus
 
-      # get thermal data
-      for thermal_sock, event in poller.poll(100):
-        msg = thermal_sock.recv()
-        evt = log.Event.from_bytes(msg)
+def send():
+  threading.Timer(3.0, send).start()
+  ready = False
 
-        eon_soc = evt.thermal.batteryPercent
-        thermal_status = evt.thermal.thermalStatus
+  while not ready:
+    ping = subprocess.call(["ping", "-W", "4", "-c", "1", PING_URL])
+    if ping:
+      #didn't get a good ping. sleep and try again
+      sleep(1)
+    else:
+      ready = True
 
+  while ready:
+    print "Transmitting to Home Assistant..."
 
-      headers = {
-      'x-ha-access': API_PASSWORD
-      }
+    headers = {
+    'x-ha-access': API_PASSWORD
+    }
 
-      stats = {'latitude': latitude,
-      'longitude': longitude,
-      'altitude': altitude,
-      'speed': speed,
-      'loc_source': loc_source,
-      'car_voltage': car_voltage,
-      'eon_soc': eon_soc,
-      'thermal_status': thermal_status
+    stats = {'latitude': latitude,
+    'longitude': longitude,
+    'altitude': altitude,
+    'speed': speed,
+    'loc_source': loc_source,
+    'car_voltage': car_voltage,
+    'eon_soc': eon_soc,
+    'thermal_status': thermal_status
 
-      }
-      data = {'state': 'connected',
-      'attributes': stats,
-      }
-      r = requests.post(API_URL, headers=headers, json=data)
-      if r.status_code == requests.codes.ok:
-        print "Received by Home Assistant"
-      else:
-        print "Problem sending. Retry"
-      #sleep(60)
-      ready = False
+    }
+    data = {'state': 'connected',
+    'attributes': stats,
+    }
+    r = requests.post(API_URL, headers=headers, json=data)
+    print r
+    if r.status_code == requests.codes.ok:
+      print "Received by Home Assistant"
+      sleep(60)
+    else:
+      print "Problem sending. Retry"
+      sleep(5)
 
 if __name__ == '__main__':
   main()
