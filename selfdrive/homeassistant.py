@@ -11,33 +11,33 @@ import os
 import subprocess
 import threading
 
+#initialize the values
+#gpsLocation
+loc_source = "None"
+latitude = -1
+longitude = -1
+altitude = -1
+speed = -1
+
+#health
+car_voltage = -1
+#thermal
+eon_soc = -1
+thermal_status = "None"
+
+#the password to get into your homeassistant UI
+API_PASSWORD = 'REMOVED'
+#the url and what you want to call your EON entity. ie, 'https://myhomeassistanturl.com/api/states/eon.chris'
+API_URL = 'https://REMOVED/api/states/eon.chris'
+#where you want to ping. probably 'https://myhomeassistanturl.com'
+PING_URL = 'REMOVED'
+
 def main(gctx=None):
   context = zmq.Context()
   poller = zmq.Poller()
   loc_sock = messaging.sub_sock(context, service_list['gpsLocation'].port, poller)
   health_sock = messaging.sub_sock(context, service_list['health'].port, poller)
   thermal_sock = messaging.sub_sock(context, service_list['thermal'].port, poller)
-
-  #initialize the values
-  #gpsLocation
-  loc_source = "None"
-  latitude = -1
-  longitude = -1
-  altitude = -1
-  speed = -1
-
-  #health
-  car_voltage = -1
-  #thermal
-  eon_soc = -1
-  thermal_status = "None"
-
-  #the password to get into your homeassistant UI
-  API_PASSWORD = 'REMOVED'
-  #the url and what you want to call your EON entity. ie, 'https://myhomeassistanturl.com/api/states/eon.chris'
-  API_URL = 'https://REMOVED/api/states/eon.chris'
-  #where you want to ping. probably 'https://myhomeassistanturl.com'
-  PING_URL = 'REMOVED'
 
   send()
 
