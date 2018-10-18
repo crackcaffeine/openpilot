@@ -20,7 +20,7 @@ def main(gctx=None):
 
   #initialize the values
   #gpsLocation
-  loc_source = -1
+  loc_source = "None"
   latitude = -1
   longitude = -1
   altitude = -1
@@ -30,7 +30,7 @@ def main(gctx=None):
   car_voltage = -1
   #thermal
   eon_soc = -1
-  thermal_status = -1
+  thermal_status = "None"
 
   #the password to get into your homeassistant UI
   API_PASSWORD = 'REMOVED'
@@ -46,7 +46,7 @@ def main(gctx=None):
       ping = subprocess.call(["ping", "-W", "4", "-c", "1", PING_URL])
       if ping:
         #didn't get a good ping. sleep and try again
-        sleep(15)
+        sleep(1)
       else:
         ready = True
 
@@ -54,7 +54,7 @@ def main(gctx=None):
       print "Transmitting to Home Assistant..."
 
       # get location data
-      for loc_sock, event in poller.poll(500):
+      for loc_sock, event in poller.poll(100):
         msg = loc_sock.recv()
         evt = log.Event.from_bytes(msg)
 
@@ -65,19 +65,19 @@ def main(gctx=None):
         speed = evt.gpsLocation.speed
 
       # get health data
-      for health_sock, event in poller.poll(500):
+      for health_sock, event in poller.poll(100):
         msg = health_sock.recv()
         evt = log.Event.from_bytes(msg)
 
         car_voltage = evt.health.voltage
 
       # get thermal data
-      for thermal_sock, event in poller.poll(500):
+      for thermal_sock, event in poller.poll(100):
         msg = thermal_sock.recv()
         evt = log.Event.from_bytes(msg)
 
         eon_soc = evt.thermal.batteryPercent
-        thermal_status = evt.thermal.ThermalStatus
+        thermal_status = evt.thermal.thermalStatus
 
 
       headers = {
