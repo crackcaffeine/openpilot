@@ -28,7 +28,7 @@ speed = -1
 car_voltage = -1
 #thermal
 eon_soc = -1
-bat = -1
+bat_temp = -1
 
 #the password to get into your homeassistant UI
 API_PASSWORD = 'REMOVED'
@@ -49,7 +49,7 @@ def main(gctx=None):
   global car_voltage
   #thermal
   global eon_soc
-  global battery
+  global bat_temp
 
   while True:
     loc_sock = messaging.recv_one_or_none(location)
@@ -76,10 +76,10 @@ def main(gctx=None):
 
     if thermal_sock is not None:
       eon_soc = thermal_sock.thermal.batteryPercent
-      battery = thermal_sock.thermal.bat
+      bat_temp = thermal_sock.thermal.bat
 
       print eon_soc,
-      print battery
+      print bat_temp
 
       send()
       sleep(3)
@@ -109,7 +109,7 @@ def send():
     'loc_source': loc_source,
     'car_voltage': car_voltage,
     'eon_soc': eon_soc,
-    'thermal_status': thermal_status
+    'bat_temp': bat_temp
 
     }
     data = {'state': 'connected',
