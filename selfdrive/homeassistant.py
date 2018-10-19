@@ -4,7 +4,7 @@ from copy import copy
 from selfdrive import messaging
 from selfdrive.services import service_list
 from cereal import log
-from time import sleep
+import time
 from common.transformations.coordinates import geodetic2ecef
 import requests
 import os
