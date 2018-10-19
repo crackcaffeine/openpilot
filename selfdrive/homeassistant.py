@@ -79,7 +79,7 @@ def main(gctx=None):
       battery = thermal_sock.thermal.bat
 
       print eon_soc,
-      print thermal_status
+      print battery
 
       send()
       sleep(3)
