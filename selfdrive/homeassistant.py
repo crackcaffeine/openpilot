@@ -28,7 +28,7 @@ speed = -1
 car_voltage = -1
 #thermal
 eon_soc = -1
-thermal_status = "None"
+bat = -1
 
 #the password to get into your homeassistant UI
 API_PASSWORD = 'REMOVED'
@@ -38,6 +38,18 @@ API_URL = 'https://REMOVED/api/states/eon.chris'
 PING_URL = 'REMOVED'
 
 def main(gctx=None):
+
+  #gpsLocation
+  global loc_source
+  global latitude
+  global longitude
+  global altitude
+  global speed
+  #health
+  global car_voltage
+  #thermal
+  global eon_soc
+  global battery
 
   while True:
     loc_sock = messaging.recv_one_or_none(location)
@@ -64,7 +76,7 @@ def main(gctx=None):
 
     if thermal_sock is not None:
       eon_soc = thermal_sock.thermal.batteryPercent
-      thermal_status = thermal_sock.thermal.thermalStatus
+      battery = thermal_sock.thermal.bat
 
       print eon_soc,
       print thermal_status
@@ -89,7 +101,7 @@ def send():
     headers = {
     'x-ha-access': API_PASSWORD
     }
-    print latitude
+
     stats = {'latitude': latitude,
     'longitude': longitude,
     'altitude': altitude,
@@ -108,6 +120,8 @@ def send():
       print "Received by Home Assistant"
     else:
       print "Problem sending. Retry"
+
+    return
 
 if __name__ == '__main__':
   main()
