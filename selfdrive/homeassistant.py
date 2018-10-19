@@ -11,6 +11,12 @@ import os
 import subprocess
 import threading
 
+context = zmq.Context()
+#poller = zmq.Poller()
+location = messaging.sub_sock(context, service_list['gpsLocation'].port)
+health = messaging.sub_sock(context, service_list['health'].port)
+thermal = messaging.sub_sock(context, service_list['thermal'].port)
+
 #initialize the values
 #gpsLocation
 loc_source = "None"
@@ -33,44 +39,46 @@ API_URL = 'https://REMOVED/api/states/eon.chris'
 PING_URL = 'REMOVED'
 
 def main(gctx=None):
-  context = zmq.Context()
-  poller = zmq.Poller()
-  loc_sock = messaging.sub_sock(context, service_list['gpsLocation'].port, poller)
-  health_sock = messaging.sub_sock(context, service_list['health'].port, poller)
-  thermal_sock = messaging.sub_sock(context, service_list['thermal'].port, poller)
 
-  send()
+  while True:
+    read()
+    send()
+    return False
 
-  while 1:
+def read():
+  threading.Timer(3.0, read).start()
 
-    # get location data
-    for loc_sock, event in poller.poll(0):
-      msg = loc_sock.recv()
-      evt = log.Event.from_bytes(msg)
+  loc_sock = messaging.recv_one_or_none(location)
+  health_sock = messaging.recv_one_or_none(health)
+  thermal_sock = messaging.recv_one_or_none(thermal)
 
-      loc_source = evt.gpsLocation.source
-      latitude = evt.gpsLocation.latitude
-      longitude = evt.gpsLocation.longitude
-      altitude = evt.gpsLocation.altitude
-      speed = evt.gpsLocation.speed
+  if loc_sock is not None:
+    loc_source = loc_sock.gpsLocation.source
+    latitude = loc_sock.gpsLocation.latitude
+    longitude = loc_sock.gpsLocation.longitude
+    altitude = loc_sock.gpsLocation.altitude
+    speed = loc_sock.gpsLocation.speed
 
-    # get health data
-    for health_sock, event in poller.poll(0):
-      msg = health_sock.recv()
-      evt = log.Event.from_bytes(msg)
+    print loc_source,
+    print latitude,
+    print longitude,
+    print altitude,
+    print speed
 
-      car_voltage = evt.health.voltage
+  if health_sock is not None:
+    car_voltage = health_sock.health.voltage
 
-    # get thermal data
-    for thermal_sock, event in poller.poll(0):
-      msg = thermal_sock.recv()
-      evt = log.Event.from_bytes(msg)
+    print car_voltage
 
-      eon_soc = evt.thermal.batteryPercent
-      thermal_status = evt.thermal.thermalStatus
+  if thermal_sock is not None:
+    eon_soc = thermal_sock.thermal.batteryPercent
+    thermal_status = thermal_sock.thermal.thermalStatus
+
+    print eon_soc,
+    print thermal_status
 
 def send():
-  threading.Timer(3.0, send).start()
+  threading.Timer(5.0, send).start()
   ready = False
 
   while not ready:
@@ -105,10 +113,8 @@ def send():
     print r
     if r.status_code == requests.codes.ok:
       print "Received by Home Assistant"
-      sleep(60)
     else:
       print "Problem sending. Retry"
-      sleep(5)
 
 if __name__ == '__main__':
   main()
