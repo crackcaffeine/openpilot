@@ -16,20 +16,18 @@ location = messaging.sub_sock(context, service_list['gpsLocation'].port)
 health = messaging.sub_sock(context, service_list['health'].port)
 thermal = messaging.sub_sock(context, service_list['thermal'].port)
 
-#initialize the values
 #gpsLocation
 loc_source = "None"
 latitude = -1
 longitude = -1
 altitude = -1
 speed = -1
-
 #health
 car_voltage = -1
 #thermal
 eon_soc = -1
 bat_temp = -1
-
+#timers
 time_sent = -1
 
 #the password to get into your homeassistant UI
@@ -62,41 +60,32 @@ def main(gctx=None):
   time_to_send = 5
 
   while True:
-    loc_sock = messaging.recv_one_or_none(location)
-    health_sock = messaging.recv_one_or_none(health)
-    thermal_sock = messaging.recv_one_or_none(thermal)
+    time now =
+    #read every n seconds
 
-    if loc_sock is not None:
-      #loc_source = loc_sock.gpsLocation.source
-      latitude = loc_sock.gpsLocation.latitude
-      longitude = loc_sock.gpsLocation.longitude
-      altitude = loc_sock.gpsLocation.altitude
-      speed = loc_sock.gpsLocation.speed
-
-      # print loc_source,
-      # print latitude,
-      # print longitude,
-      # print altitude,
-      # print speed
-
-    if health_sock is not None:
-      car_voltage = health_sock.health.voltage
-
-      # print car_voltage
-
-    if thermal_sock is not None:
-      eon_soc = thermal_sock.thermal.batteryPercent
-      bat_temp = thermal_sock.thermal.bat * .001
-
-      # print eon_soc,
-      # print bat_temp
+    #send evern seconds
     send()
-    time.sleep(1)
 
+def read():
+      location_sock = messaging.recv_one_or_none(location)
+      health_sock = messaging.recv_one_or_none(health)
+      thermal_sock = messaging.recv_one_or_none(thermal)
+
+      if location_sock is not None:
+        #loc_source = location_sock.gpsLocation.source
+        latitude = location_sock.gpsLocation.latitude
+        longitude = location_sock.gpsLocation.longitude
+        altitude = location_sock.gpsLocation.altitude
+        speed = location_sock.gpsLocation.speed
+
+      if health_sock is not None:
+        car_voltage = health_sock.health.voltage
+
+      if thermal_sock is not None:
+        eon_soc = thermal_sock.thermal.batteryPercent
+        bat_temp = thermal_sock.thermal.bat * .001
 
 def send():
-  threading.Timer(6.0, send).start()
-
   ready = False
 
   while not ready:
