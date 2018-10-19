@@ -90,7 +90,7 @@ def main(gctx=None):
 
       # print eon_soc,
       # print bat_temp
-    sleep(1)
+    time.sleep(1)
 
 def send():
   threading.Timer(6.0, send).start()
@@ -101,7 +101,7 @@ def send():
     ping = subprocess.call(["ping", "-W", "4", "-c", "1", PING_URL])
     if ping:
       #didn't get a good ping. sleep and try again
-      sleep(1)
+      time.sleep(1)
     else:
       ready = True
 
