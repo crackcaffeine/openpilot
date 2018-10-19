@@ -30,12 +30,16 @@ car_voltage = -1
 eon_soc = -1
 bat_temp = -1
 
+time_sent = -1
+
 #the password to get into your homeassistant UI
 API_PASSWORD = 'REMOVED'
 #the url and what you want to call your EON entity. ie, 'https://myhomeassistanturl.com/api/states/eon.chris'
 API_URL = 'https://REMOVED/api/states/eon.chris'
 #where you want to ping. probably 'https://myhomeassistanturl.com'
 PING_URL = 'REMOVED'
+
+threading.Timer(6.0, send).start()
 
 def main(gctx=None):
 
@@ -51,6 +55,14 @@ def main(gctx=None):
   global eon_soc
   global bat_temp
 
+  global time_sent
+
+  timenow = time.clock()
+  last_read = 0
+  last_sent = 0
+  time_to_read = 1
+  time_to_send = 5
+
   while True:
     loc_sock = messaging.recv_one_or_none(location)
     health_sock = messaging.recv_one_or_none(health)
@@ -63,28 +75,28 @@ def main(gctx=None):
       altitude = loc_sock.gpsLocation.altitude
       speed = loc_sock.gpsLocation.speed
 
-      print loc_source,
-      print latitude,
-      print longitude,
-      print altitude,
-      print speed
+      # print loc_source,
+      # print latitude,
+      # print longitude,
+      # print altitude,
+      # print speed
 
     if health_sock is not None:
       car_voltage = health_sock.health.voltage
 
-      print car_voltage
+      # print car_voltage
 
     if thermal_sock is not None:
       eon_soc = thermal_sock.thermal.batteryPercent
-      bat_temp = thermal_sock.thermal.bat
+      bat_temp = thermal_sock.thermal.bat * .001
 
-      print eon_soc,
-      print bat_temp
+      # print eon_soc,
+      # print bat_temp
+    sleep(1)
 
-      send()
-      sleep(3)
 
 def send():
+
   ready = False
 
   while not ready:
@@ -97,6 +109,9 @@ def send():
 
   while ready:
     print "Transmitting to Home Assistant..."
+
+    global time_sent
+    time_sent = time.clock()
 
     headers = {
     'x-ha-access': API_PASSWORD
@@ -112,7 +127,7 @@ def send():
     'bat_temp': bat_temp
 
     }
-    data = {'state': 'connected',
+    data = {'state': time_sent,
     'attributes': stats,
     }
     r = requests.post(API_URL, headers=headers, json=data)
