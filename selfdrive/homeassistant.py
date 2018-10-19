@@ -92,6 +92,8 @@ def main(gctx=None):
       # print bat_temp
     time.sleep(1)
 
+send()
+
 def send():
   threading.Timer(6.0, send).start()
 
