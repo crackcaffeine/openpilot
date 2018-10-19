@@ -39,8 +39,6 @@ API_URL = 'https://REMOVED/api/states/eon.chris'
 #where you want to ping. probably 'https://myhomeassistanturl.com'
 PING_URL = 'REMOVED'
 
-send()
-
 def main(gctx=None):
 
   #gpsLocation
@@ -92,6 +90,7 @@ def main(gctx=None):
 
       # print eon_soc,
       # print bat_temp
+    send()
     time.sleep(1)
 
 
