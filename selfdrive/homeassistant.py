@@ -57,7 +57,7 @@ def main(gctx=None):
     thermal_sock = messaging.recv_one_or_none(thermal)
 
     if loc_sock is not None:
-      loc_source = loc_sock.gpsLocation.source
+      #loc_source = loc_sock.gpsLocation.source
       latitude = loc_sock.gpsLocation.latitude
       longitude = loc_sock.gpsLocation.longitude
       altitude = loc_sock.gpsLocation.altitude
