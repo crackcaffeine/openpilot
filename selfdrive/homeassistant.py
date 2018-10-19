@@ -12,7 +12,6 @@ import subprocess
 import threading
 
 context = zmq.Context()
-#poller = zmq.Poller()
 location = messaging.sub_sock(context, service_list['gpsLocation'].port)
 health = messaging.sub_sock(context, service_list['health'].port)
 thermal = messaging.sub_sock(context, service_list['thermal'].port)
@@ -41,44 +40,39 @@ PING_URL = 'REMOVED'
 def main(gctx=None):
 
   while True:
-    read()
-    send()
-    return False
+    loc_sock = messaging.recv_one_or_none(location)
+    health_sock = messaging.recv_one_or_none(health)
+    thermal_sock = messaging.recv_one_or_none(thermal)
 
-def read():
-  threading.Timer(3.0, read).start()
+    if loc_sock is not None:
+      loc_source = loc_sock.gpsLocation.source
+      latitude = loc_sock.gpsLocation.latitude
+      longitude = loc_sock.gpsLocation.longitude
+      altitude = loc_sock.gpsLocation.altitude
+      speed = loc_sock.gpsLocation.speed
 
-  loc_sock = messaging.recv_one_or_none(location)
-  health_sock = messaging.recv_one_or_none(health)
-  thermal_sock = messaging.recv_one_or_none(thermal)
+      print loc_source,
+      print latitude,
+      print longitude,
+      print altitude,
+      print speed
 
-  if loc_sock is not None:
-    loc_source = loc_sock.gpsLocation.source
-    latitude = loc_sock.gpsLocation.latitude
-    longitude = loc_sock.gpsLocation.longitude
-    altitude = loc_sock.gpsLocation.altitude
-    speed = loc_sock.gpsLocation.speed
+    if health_sock is not None:
+      car_voltage = health_sock.health.voltage
 
-    print loc_source,
-    print latitude,
-    print longitude,
-    print altitude,
-    print speed
+      print car_voltage
 
-  if health_sock is not None:
-    car_voltage = health_sock.health.voltage
+    if thermal_sock is not None:
+      eon_soc = thermal_sock.thermal.batteryPercent
+      thermal_status = thermal_sock.thermal.thermalStatus
 
-    print car_voltage
+      print eon_soc,
+      print thermal_status
 
-  if thermal_sock is not None:
-    eon_soc = thermal_sock.thermal.batteryPercent
-    thermal_status = thermal_sock.thermal.thermalStatus
-
-    print eon_soc,
-    print thermal_status
+      send()
+      sleep(3)
 
 def send():
-  threading.Timer(5.0, send).start()
   ready = False
 
   while not ready:
@@ -95,7 +89,7 @@ def send():
     headers = {
     'x-ha-access': API_PASSWORD
     }
-
+    print latitude
     stats = {'latitude': latitude,
     'longitude': longitude,
     'altitude': altitude,
@@ -110,7 +104,6 @@ def send():
     'attributes': stats,
     }
     r = requests.post(API_URL, headers=headers, json=data)
-    print r
     if r.status_code == requests.codes.ok:
       print "Received by Home Assistant"
     else:
