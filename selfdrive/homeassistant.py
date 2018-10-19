@@ -39,8 +39,6 @@ API_URL = 'https://REMOVED/api/states/eon.chris'
 #where you want to ping. probably 'https://myhomeassistanturl.com'
 PING_URL = 'REMOVED'
 
-threading.Timer(6.0, send).start()
-
 def main(gctx=None):
 
   #gpsLocation
@@ -94,8 +92,8 @@ def main(gctx=None):
       # print bat_temp
     sleep(1)
 
-
 def send():
+  threading.Timer(6.0, send).start()
 
   ready = False
 
