@@ -52,6 +52,8 @@ def main(gctx=None):
     if time_now - last_send >= time_to_send:
       last_send = send()
       time_now = time.time()
+    time.sleep(1)
+
 
 def read():
 
