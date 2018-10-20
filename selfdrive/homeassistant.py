@@ -43,6 +43,7 @@ def main(gctx=None):
   global last_send
 
   while 1:
+
     time_now = time.time()
     #read every n seconds
     if time_now - last_read >= time_to_read:
@@ -52,6 +53,7 @@ def main(gctx=None):
     if time_now - last_send >= time_to_send:
       last_send = send()
       time_now = time.time()
+    time.sleep(1)
 
 def read():
 
