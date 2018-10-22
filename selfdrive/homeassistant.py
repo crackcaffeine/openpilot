@@ -40,8 +40,8 @@ time_to_send = 5
 
 def main(gctx=None):
   #sleep to prevent insane cpu usage when manager.py is in charge of starting this script
-  #print "H/A Sleeping for 30"
-  #time.sleep(30)
+  print "H/A Sleeping for 30"
+  time.sleep(30)
   global last_read
   global last_send
 
