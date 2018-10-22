@@ -39,6 +39,9 @@ time_to_read = 1
 time_to_send = 5
 
 def main(gctx=None):
+  #sleep to prevent insane cpu usage when manager.py is in charge of starting this script
+  #print "H/A Sleeping for 30"
+  #time.sleep(30)
   global last_read
   global last_send
 
@@ -68,26 +71,28 @@ def read():
   #thermal
   global eon_soc
   global bat_temp
+  try:
+    location_sock = messaging.recv_one_or_none(location)
+    health_sock = messaging.recv_one_or_none(health)
+    thermal_sock = messaging.recv_one_or_none(thermal)
 
-  location_sock = messaging.recv_one_or_none(location)
-  health_sock = messaging.recv_one_or_none(health)
-  thermal_sock = messaging.recv_one_or_none(thermal)
+    if location_sock is not None:
+      loc_source = location_sock.gpsLocation.source
+      latitude = location_sock.gpsLocation.latitude
+      longitude = location_sock.gpsLocation.longitude
+      altitude = location_sock.gpsLocation.altitude
+      speed = location_sock.gpsLocation.speed
 
-  if location_sock is not None:
-    loc_source = location_sock.gpsLocation.source
-    latitude = location_sock.gpsLocation.latitude
-    longitude = location_sock.gpsLocation.longitude
-    altitude = location_sock.gpsLocation.altitude
-    speed = location_sock.gpsLocation.speed
+    if health_sock is not None:
+      car_voltage = health_sock.health.voltage
 
-  if health_sock is not None:
-    car_voltage = health_sock.health.voltage
-
-  if thermal_sock is not None:
-    eon_soc = thermal_sock.thermal.batteryPercent
-    bat_temp = thermal_sock.thermal.bat * .001
-    bat_temp = round(bat_temp)
-  #print type(loc_source)
+    if thermal_sock is not None:
+      eon_soc = thermal_sock.thermal.batteryPercent
+      bat_temp = thermal_sock.thermal.bat * .001
+      bat_temp = round(bat_temp)
+    #print type(loc_source)
+  except:
+    print "Couldn't get data from zmq"
 
   return time.time()
 
