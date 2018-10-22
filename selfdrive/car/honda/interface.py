@@ -150,7 +150,7 @@ class CarInterface(object):
     # accelOverride is more or less the max throttle allowed to pcm: usually set to a constant
     # unless aTargetMax is very high and then we scale with it; this help in quicker restart
 
-    return float(max(0.714, a_target / A_ACC_MAX)) * min(speedLimiter, accelLimiter)
+    return float(min(speedLimiter, accelLimiter))
 
   @staticmethod
   def get_params(candidate, fingerprint):
