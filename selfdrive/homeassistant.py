@@ -9,7 +9,6 @@ import requests
 import os
 import subprocess
 
-time.sleep(15)
 context = zmq.Context()
 location = messaging.sub_sock(context, service_list['gpsLocation'].port)
 health = messaging.sub_sock(context, service_list['health'].port)
@@ -72,10 +71,11 @@ def read():
   #thermal
   global eon_soc
   global bat_temp
-
+  print "HA-set socks"
   location_sock = messaging.recv_one_or_none(location)
   health_sock = messaging.recv_one_or_none(health)
   thermal_sock = messaging.recv_one_or_none(thermal)
+  print "HA-after set socks"
 
   if location_sock is not None:
     loc_source = location_sock.gpsLocation.source
@@ -92,7 +92,7 @@ def read():
     bat_temp = thermal_sock.thermal.bat * .001
     bat_temp = round(bat_temp)
   #print type(loc_source)
-
+  print "HA-end of read"
   return time.time()
 
 def send():
