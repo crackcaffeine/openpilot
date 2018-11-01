@@ -40,10 +40,12 @@ time_to_read = 1
 time_to_send = 5
 
 def main(gctx=None):
+  print("HA-Start Main")
   global last_read
   global last_send
 
   while 1:
+    print "HA-While"
     time_now = time.time()
     #read every n seconds
     if time_now - last_read >= time_to_read:
@@ -57,6 +59,7 @@ def main(gctx=None):
 
 
 def read():
+  print "HA-read"
 
   #gpsLocation
   global loc_source
@@ -93,6 +96,7 @@ def read():
   return time.time()
 
 def send():
+  print "HA-send"
 
   while 1:
     ping = subprocess.call(["ping", "-W", "4", "-c", "1", PING_URL])
