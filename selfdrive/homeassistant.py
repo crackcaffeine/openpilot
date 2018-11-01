@@ -1,10 +1,12 @@
 #!/usr/bin/env python
+import time
+time.sleep(30)
+
 import zmq
 from copy import copy
 from selfdrive import messaging
 from selfdrive.services import service_list
 from cereal import log
-import time
 import requests
 import os
 import subprocess
