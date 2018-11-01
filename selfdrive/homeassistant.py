@@ -1,7 +1,5 @@
 #!/usr/bin/env python
 import time
-time.sleep(30)
-
 import zmq
 from copy import copy
 from selfdrive import messaging
@@ -11,6 +9,7 @@ import requests
 import os
 import subprocess
 
+time.sleep(15)
 context = zmq.Context()
 location = messaging.sub_sock(context, service_list['gpsLocation'].port)
 health = messaging.sub_sock(context, service_list['health'].port)
