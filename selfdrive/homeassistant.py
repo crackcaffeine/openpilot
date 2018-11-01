@@ -39,12 +39,10 @@ time_to_read = 1
 time_to_send = 5
 
 def main(gctx=None):
-  print("HA-Start Main")
   global last_read
   global last_send
 
   while 1:
-    print "HA-While"
     time_now = time.time()
     #read every n seconds
     if time_now - last_read >= time_to_read:
@@ -58,8 +56,6 @@ def main(gctx=None):
 
 
 def read():
-  print "HA-read"
-
   #gpsLocation
   global loc_source
   global latitude
@@ -71,28 +67,30 @@ def read():
   #thermal
   global eon_soc
   global bat_temp
-  print "HA-set socks"
-  location_sock = messaging.recv_one_or_none(location)
-  health_sock = messaging.recv_one_or_none(health)
-  thermal_sock = messaging.recv_one_or_none(thermal)
-  print "HA-after set socks"
+  try:
+    location_sock = messaging.recv_one_or_none(location)
+    health_sock = messaging.recv_one_or_none(health)
+    thermal_sock = messaging.recv_one_or_none(thermal)
+    print "HA-after set socks"
 
-  if location_sock is not None:
-    loc_source = location_sock.gpsLocation.source
-    latitude = location_sock.gpsLocation.latitude
-    longitude = location_sock.gpsLocation.longitude
-    altitude = location_sock.gpsLocation.altitude
-    speed = location_sock.gpsLocation.speed
+    if location_sock is not None:
+      loc_source = location_sock.gpsLocation.source
+      latitude = location_sock.gpsLocation.latitude
+      longitude = location_sock.gpsLocation.longitude
+      altitude = location_sock.gpsLocation.altitude
+      speed = location_sock.gpsLocation.speed
 
-  if health_sock is not None:
-    car_voltage = health_sock.health.voltage
+    if health_sock is not None:
+      car_voltage = health_sock.health.voltage
 
-  if thermal_sock is not None:
-    eon_soc = thermal_sock.thermal.batteryPercent
-    bat_temp = thermal_sock.thermal.bat * .001
-    bat_temp = round(bat_temp)
-  #print type(loc_source)
-  print "HA-end of read"
+    if thermal_sock is not None:
+      eon_soc = thermal_sock.thermal.batteryPercent
+      bat_temp = thermal_sock.thermal.bat * .001
+      bat_temp = round(bat_temp)
+    #print type(loc_source)
+    print "HA-end of read"
+  except:
+    print "HA-Read Failed"
   return time.time()
 
 def send():
