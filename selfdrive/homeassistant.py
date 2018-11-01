@@ -41,6 +41,7 @@ time_to_send = 5
 def main(gctx=None):
   global last_read
   global last_send
+  time.sleep(15)
 
   while 1:
     time_now = time.time()
